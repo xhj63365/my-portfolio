@@ -1,0 +1,32 @@
+/* Tailwind CSS v4 入口 */
+@import "tailwindcss";
+
+/* 注册 Typography 排版插件：Tailwind v4 通过 @plugin 加载 JS 插件，无需 tailwind.config.js */
+@plugin "@tailwindcss/typography";
+
+/* 关键修复：让 dark: 工具类跟随 <html class="dark"> 类名切换，
+   而不是默认的 prefers-color-scheme（否则按钮切暗无效） */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 主题字体：覆盖 Tailwind 默认 sans/serif，接入 Noto 系列中文字体 */
+@theme {
+  --font-sans: "Noto Sans SC", ui-sans-serif, system-ui, -apple-system, "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  --font-serif: "Noto Serif SC", ui-serif, Georgia, "Songti SC", serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-stone-50 text-stone-900 antialiased transition-colors duration-300 dark:bg-stone-950 dark:text-stone-100;
+}
+
+/* Markdown 正文细节微调（与 typography 插件配合） */
+.prose img {
+  border-radius: 0.75rem;
+}
+.prose blockquote {
+  @apply border-blue-600 not-italic;
+}

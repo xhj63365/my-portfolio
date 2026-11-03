@@ -1,0 +1,17 @@
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+.astro/
+
+# 环境变量
+.env
+.env.*
+!.env.example
+
+# 日志与系统文件
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store

@@ -1,0 +1,23 @@
+{
+  "name": "joexu-portfolio",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Joexu 的个人作品集：写作与摄影，基于 Astro 5 + Tailwind CSS v4",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "pages:deploy": "npm run build && npx wrangler pages deploy dist"
+  },
+  "dependencies": {
+    "astro": "^5.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
+    "@tailwindcss/vite": "^4.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

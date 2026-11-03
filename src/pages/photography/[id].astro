@@ -1,0 +1,55 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const photos = await getCollection('photography');
+  return photos.map((photo) => ({
+    params: { id: photo.id },
+    props: { photo },
+  }));
+}
+
+const { photo } = Astro.props;
+const { Content } = await render(photo);
+const fmt = (d: Date) =>
+  d.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+
+<Layout title={`${photo.data.title} - 文字与光影`}>
+  <article class="prose prose-stone max-w-none dark:prose-invert">
+    <header class="mb-10 not-prose">
+      <a
+        href="/photography"
+        class="mb-4 inline-block text-sm text-blue-600 hover:text-blue-700"
+      >
+        ← 返回摄影列表
+      </a>
+      <h1 class="font-serif text-4xl font-bold">{photo.data.title}</h1>
+      <div class="mt-4 flex flex-wrap items-center gap-4 text-sm text-stone-500">
+        <time>{fmt(photo.data.date)}</time>
+        {photo.data.location && <span>📍 {photo.data.location}</span>}
+        {photo.data.camera && <span>📷 {photo.data.camera}</span>}
+      </div>
+    </header>
+
+    {/* 详情主图：使用 coverImage，缺失时回退占位 */}
+    <div
+      class="not-prose relative mb-10 aspect-[4/3] w-full overflow-hidden rounded-xl bg-stone-200 dark:bg-stone-800"
+    >
+      <div
+        class="absolute inset-0 flex items-center justify-center text-stone-400"
+      >
+        <span class="text-6xl">📷</span>
+      </div>
+      <img
+        src={photo.data.coverImage}
+        alt={photo.data.title}
+        onerror="this.remove()"
+        class="absolute inset-0 h-full w-full object-cover"
+      />
+    </div>
+
+    <Content />
+  </article>
+</Layout>

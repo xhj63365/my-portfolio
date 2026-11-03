@@ -1,0 +1,118 @@
+---
+// 关键修复：在组件内引入全局样式，Astro 会在构建时注入 <head>
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = 'Joexu 的个人作品集 —— 文字与光影' } = Astro.props;
+
+// 当前路径，用于导航高亮
+const pathname = Astro.url.pathname;
+const navItems = [
+  { href: '/writing', label: '写作' },
+  { href: '/photography', label: '摄影' },
+  { href: '/about', label: '关于我' },
+];
+---
+
+<!doctype html>
+<html lang="zh-CN" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title}</title>
+
+    {/* 防闪烁：首帧渲染前根据本地偏好/系统偏好确定 dark 类 */}
+    <script is:inline>
+      (function () {
+        try {
+          const stored = localStorage.getItem('theme');
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (stored === 'dark' || (!stored && prefersDark)) {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body class="font-sans">
+    <nav
+      class="sticky top-0 z-50 border-b border-stone-200/60 bg-stone-50/80 backdrop-blur-md dark:border-stone-800/60 dark:bg-stone-950/80"
+    >
+      <div class="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
+        <a href="/" class="font-serif text-xl font-bold tracking-tight hover:text-blue-600 transition-colors">
+          文字与光影
+        </a>
+        <div class="flex items-center gap-5 text-sm font-medium sm:gap-6">
+          {
+            navItems.map((item) => (
+              <a
+                href={item.href}
+                class={`transition-colors hover:text-blue-600 ${
+                  pathname.startsWith(item.href) ? 'text-blue-600' : ''
+                }`}
+              >
+                {item.label}
+              </a>
+            ))
+          }
+          <button
+            id="theme-toggle"
+            class="rounded-full p-2 transition-colors hover:bg-stone-200 dark:hover:bg-stone-800"
+            aria-label="切换明暗主题"
+            aria-pressed="false"
+          >
+            <span class="dark:hidden">
+              <!-- 月亮：亮色下显示 -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+              </svg>
+            </span>
+            <span class="hidden dark:inline">
+              <!-- 太阳：暗色下显示 -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+              </svg>
+            </span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="mx-auto max-w-4xl px-6 py-12">
+      <slot />
+    </main>
+
+    <footer class="border-t border-stone-200/60 py-8 text-center text-sm text-stone-500 dark:border-stone-800/60">
+      <p>&copy; {new Date().getFullYear()} Joexu · 文字与光影</p>
+    </footer>
+
+    <script>
+      const toggle = document.getElementById('theme-toggle');
+      const html = document.documentElement;
+      const syncPressed = () =>
+        toggle?.setAttribute('aria-pressed', html.classList.contains('dark') ? 'true' : 'false');
+      toggle?.addEventListener('click', () => {
+        html.classList.toggle('dark');
+        localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        syncPressed();
+      });
+      syncPressed();
+    </script>
+  </body>
+</html>

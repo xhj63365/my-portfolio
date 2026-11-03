@@ -115,4 +115,187 @@ const navItems = [
       syncPressed();
     </script>
   </body>
+<div id="music-player" class="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-2">
+  <!-- 展开面板 -->
+  <div id="music-panel"
+    class="hidden w-64 rounded-xl border border-stone-200/60 bg-white/90 p-3 shadow-lg backdrop-blur-md
+           dark:border-stone-800/60 dark:bg-stone-900/90 transition-all duration-300">
+    <!-- 歌曲信息 -->
+    <div class="mb-2 flex items-center gap-2">
+      <div id="music-disc" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-800">
+        <svg class="h-4 w-4 text-stone-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <circle cx="12" cy="12" r="10"></circle>
+        </svg>
+      </div>
+      <div class="min-w-0 flex-1">
+        <p id="music-title" class="truncate text-sm font-medium text-stone-800 dark:text-stone-200">背景音乐</p>
+        <p id="music-time" class="text-xs text-stone-400">0:00 / 0:00</p>
+      </div>
+    </div>
+    <!-- 进度条 -->
+    <div class="mb-2 flex items-center gap-2">
+      <input id="music-seek" type="range" min="0" max="100" value="0" step="0.1"
+        class="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-stone-200 accent-blue-500 dark:bg-stone-700
+               [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none
+               [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500">
+    </div>
+    <!-- 音量控制 -->
+    <div class="flex items-center gap-2">
+      <svg class="h-4 w-4 shrink-0 text-stone-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+      </svg>
+      <input id="music-volume" type="range" min="0" max="100" value="70" step="1"
+        class="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-stone-200 accent-blue-500 dark:bg-stone-700
+               [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none
+               [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500">
+    </div>
+  </div>
+
+  <!-- 主按钮 -->
+  <button id="music-toggle"
+    class="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 shadow-lg backdrop-blur-md
+           border border-stone-200/60 transition-all duration-300 hover:scale-110 hover:shadow-xl
+           dark:bg-stone-900/90 dark:border-stone-800/60"
+    aria-label="播放/暂停背景音乐">
+    <!-- 播放图标 -->
+    <svg id="icon-play" class="h-5 w-5 text-stone-600 dark:text-stone-300" xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24" fill="currentColor">
+      <path d="M8 5v14l11-7z"></path>
+    </svg>
+    <!-- 暂停图标 -->
+    <svg id="icon-pause" class="hidden h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24" fill="currentColor">
+      <rect x="6" y="4" width="4" height="16"></rect>
+      <rect x="14" y="4" width="4" height="16"></rect>
+    </svg>
+  </button>
+</div>
+
+<!-- 音频元素 — 修改 src 为你的音频文件路径 -->
+<audio id="music-audio" loop preload="none">
+  <source src="/bgm.mp3" type="audio/mpeg">
+  <!-- 如果需要其他格式，可以添加更多 source -->
+  <!-- <source src="/bgm.ogg" type="audio/ogg"> -->
+</audio>
+
+<script>
+(function () {
+  const audio = document.getElementById('music-audio');
+  const toggle = document.getElementById('music-toggle');
+  const panel = document.getElementById('music-panel');
+  const iconPlay = document.getElementById('icon-play');
+  const iconPause = document.getElementById('icon-pause');
+  const seek = document.getElementById('music-seek');
+  const volume = document.getElementById('music-volume');
+  const timeEl = document.getElementById('music-time');
+  const disc = document.getElementById('music-disc');
+
+  let isPlaying = false;
+  let panelVisible = false;
+
+  // 格式化时间 mm:ss
+  function formatTime(sec) {
+    if (isNaN(sec)) return '0:00';
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  // 切换面板显隐
+  function togglePanel() {
+    panelVisible = !panelVisible;
+    panel.classList.toggle('hidden', !panelVisible);
+  }
+
+  // 更新播放/暂停图标
+  function updateIcon() {
+    iconPlay.classList.toggle('hidden', isPlaying);
+    iconPause.classList.toggle('hidden', !isPlaying);
+  }
+
+  // 点击主按钮
+  toggle.addEventListener('click', function () {
+    if (!panelVisible) {
+      togglePanel();
+    }
+    if (isPlaying) {
+      audio.pause();
+      isPlaying = false;
+    } else {
+      audio.play().catch(function () {
+        isPlaying = false;
+        updateIcon();
+      });
+      isPlaying = true;
+    }
+    updateIcon();
+  });
+
+  // 音频播放事件
+  audio.addEventListener('play', function () {
+    isPlaying = true;
+    updateIcon();
+  });
+
+  audio.addEventListener('pause', function () {
+    isPlaying = false;
+    updateIcon();
+  });
+
+  // 时间更新
+  audio.addEventListener('timeupdate', function () {
+    if (audio.duration) {
+      seek.value = (audio.currentTime / audio.duration) * 100;
+      timeEl.textContent = formatTime(audio.currentTime) + ' / ' + formatTime(audio.duration);
+    }
+  });
+
+  // 拖动进度条
+  seek.addEventListener('input', function () {
+    if (audio.duration) {
+      audio.currentTime = (seek.value / 100) * audio.duration;
+    }
+  });
+
+  // 音量控制
+  volume.addEventListener('input', function () {
+    audio.volume = volume.value / 100;
+  });
+
+  // 初始化音量
+  audio.volume = 0.7;
+
+  // 点击播放器外部关闭面板
+  document.addEventListener('click', function (e) {
+    const player = document.getElementById('music-player');
+    if (panelVisible && !player.contains(e.target)) {
+      togglePanel();
+    }
+  });
+
+  // 播放时碟片旋转动画
+  let rotation = 0;
+  let animFrame = null;
+  function animateDisc() {
+    if (isPlaying) {
+      rotation = (rotation + 1) % 360;
+      disc.style.transform = 'rotate(' + rotation + 'deg)';
+      animFrame = requestAnimationFrame(animateDisc);
+    }
+  }
+  audio.addEventListener('play', function () {
+    if (!animFrame) animateDisc();
+  });
+  audio.addEventListener('pause', function () {
+    if (animFrame) {
+      cancelAnimationFrame(animFrame);
+      animFrame = null;
+    }
+  });
+})();
+</script>
 </html>

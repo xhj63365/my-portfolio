@@ -39,20 +39,9 @@ const featuredPhotography = (
       {
         featuredWriting.map((post) => (
           <article
-            class="group overflow-hidden rounded-xl border border-stone-200/60 bg-white shadow-sm transition-all hover:shadow-md dark:border-stone-700/60 dark:bg-stone-900"
+            class="group rounded-xl border border-stone-200 bg-white p-6 shadow-sm transition-all hover:border-blue-400/30 hover:shadow-md dark:border-stone-800 dark:bg-stone-900"
           >
-            {/* macOS 窗口标题栏 */}
-            <div class="flex items-center gap-2 border-b border-stone-200/60 bg-stone-50/50 px-4 py-2.5 dark:border-stone-700/60 dark:bg-stone-800/50">
-              <div class="flex items-center gap-1.5">
-                <span class="h-3 w-3 rounded-full bg-[#ff5f57]"></span>
-                <span class="h-3 w-3 rounded-full bg-[#febc2e]"></span>
-                <span class="h-3 w-3 rounded-full bg-[#28c840]"></span>
-              </div>
-              <span class="flex-1 text-center text-xs text-stone-400 dark:text-stone-500 truncate">{post.data.title}</span>
-              <div class="w-[52px]"></div>
-            </div>
-            {/* 文章内容 */}
-            <a href={`/writing/${post.id}/`} class="block p-6">
+            <a href={`/writing/${post.id}/`} class="block">
               <time class="mb-2 block text-xs text-stone-500">
                 {fmt(post.data.date)}
               </time>
@@ -99,39 +88,28 @@ const featuredPhotography = (
         featuredPhotography.map((p) => (
           <a
             href={`/photography/${p.id}/`}
-            class="group overflow-hidden rounded-xl border border-stone-200/60 bg-white shadow-sm transition-all hover:shadow-md dark:border-stone-700/60 dark:bg-stone-900"
+            class="group relative aspect-[4/3] overflow-hidden rounded-xl bg-stone-200 dark:bg-stone-800"
           >
-            {/* macOS 窗口标题栏 */}
-            <div class="flex items-center gap-2 border-b border-stone-200/60 bg-stone-50/50 px-3 py-2 dark:border-stone-700/60 dark:bg-stone-800/50">
-              <div class="flex items-center gap-1.5">
-                <span class="h-2.5 w-2.5 rounded-full bg-[#ff5f57]"></span>
-                <span class="h-2.5 w-2.5 rounded-full bg-[#febc2e]"></span>
-                <span class="h-2.5 w-2.5 rounded-full bg-[#28c840]"></span>
-              </div>
-              <span class="flex-1 text-center text-[11px] text-stone-400 dark:text-stone-500 truncate">{p.data.title}</span>
-              <div class="w-[40px]"></div>
+            {/* 图片缺失时的兜底占位 */}
+            <div class="absolute inset-0 flex items-center justify-center text-stone-400">
+              <span class="text-4xl">📷</span>
             </div>
-            {/* 封面图 */}
-            <div class="relative aspect-[4/3] bg-stone-200 dark:bg-stone-800">
-              <div class="absolute inset-0 flex items-center justify-center text-stone-400">
-                <span class="text-4xl">📷</span>
-              </div>
-              <img
-                src={p.data.coverImage}
-                alt={p.data.title}
-                loading="lazy"
-                onerror="this.remove()"
-                class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              <div
-                class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100"
-              />
-              <div
-                class="absolute bottom-0 left-0 right-0 translate-y-full p-4 text-white transition-transform group-hover:translate-y-0"
-              >
-                <h3 class="font-bold">{p.data.title}</h3>
-                {p.data.location && <p class="text-sm opacity-85">{p.data.location}</p>}
-              </div>
+            {/* 真实封面：coverImage 接通 */}
+            <img
+              src={p.data.coverImage}
+              alt={p.data.title}
+              loading="lazy"
+              onerror="this.remove()"
+              class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100"
+            />
+            <div
+              class="absolute bottom-0 left-0 right-0 translate-y-full p-4 text-white transition-transform group-hover:translate-y-0"
+            >
+              <h3 class="font-bold">{p.data.title}</h3>
+              {p.data.location && <p class="text-sm opacity-85">{p.data.location}</p>}
             </div>
           </a>
         ))

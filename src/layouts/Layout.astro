@@ -13,6 +13,7 @@ const pathname = Astro.url.pathname;
 const navItems = [
   { href: '/writing', label: '写作' },
   { href: '/photography', label: '摄影' },
+  { href: '/music', label: '音乐' },
   { href: '/about', label: '关于我' },
 ];
 ---
@@ -65,17 +66,6 @@ const navItems = [
               </a>
             ))
           }
-          {/* 音乐分享按钮 */}
-          <button
-            id="music-share-btn"
-            class="flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-600 transition-all hover:bg-blue-50 hover:text-blue-600 dark:bg-stone-800 dark:text-stone-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-400"
-            aria-label="打开音乐分享"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5">
-              <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6Z" />
-            </svg>
-            音乐
-          </button>
           <button
             id="theme-toggle"
             class="rounded-full p-2 transition-colors hover:bg-stone-200 dark:hover:bg-stone-800"
@@ -106,218 +96,18 @@ const navItems = [
       <p>&copy; {new Date().getFullYear()} Joexu · 文字与光影</p>
     </footer>
 
-    <!-- ===== 音乐分享弹窗 (macOS 风格窗口) ===== -->
-    <div id="music-modal-overlay" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div id="music-modal" class="relative w-[340px] max-w-[90vw] overflow-hidden rounded-xl border border-stone-200/80 bg-white shadow-2xl dark:border-stone-700/80 dark:bg-stone-900 transition-transform duration-300 scale-95 opacity-0">
-
-        <!-- macOS 风格标题栏 -->
-        <div class="flex items-center gap-2 border-b border-stone-200/60 px-4 py-3 dark:border-stone-700/60">
-          <div class="flex items-center gap-1.5">
-            <button id="music-modal-close" class="group relative h-3 w-3 rounded-full bg-[#ff5f57] transition-all hover:brightness-90" aria-label="关闭">
-              <svg class="absolute inset-0 m-auto h-2 w-2 opacity-0 group-hover:opacity-100 transition-opacity" viewBox="0 0 8 8" fill="none" stroke="#4c0002" stroke-width="1.5" stroke-linecap="round">
-                <path d="M1 1l6 6M7 1L1 7" />
-              </svg>
-            </button>
-            <span class="h-3 w-3 rounded-full bg-[#febc2e]"></span>
-            <span class="h-3 w-3 rounded-full bg-[#28c840]"></span>
-          </div>
-          <span class="flex-1 text-center text-xs font-medium text-stone-500 dark:text-stone-400 select-none">音乐分享</span>
-          <div class="w-[52px]"></div>
-        </div>
-
-        <!-- 内容区 -->
-        <div class="p-5">
-          <!-- 封面与歌曲信息 -->
-          <div class="mb-5 flex items-center gap-4">
-            <div id="music-disc-large" class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-stone-100 to-stone-200 dark:from-stone-700 dark:to-stone-800 shadow-inner">
-              <svg class="h-8 w-8 text-stone-400 dark:text-stone-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="3"></circle>
-                <circle cx="12" cy="12" r="10"></circle>
-              </svg>
-            </div>
-            <div class="min-w-0 flex-1">
-              <p id="music-modal-title" class="text-base font-bold text-stone-800 dark:text-stone-200 truncate">背景音乐</p>
-              <p class="text-xs text-stone-500 dark:text-stone-400 mt-0.5">Joexu 的精选歌单</p>
-            </div>
-          </div>
-
-          <!-- 进度条 -->
-          <div class="mb-4">
-            <div id="music-progress-bar" class="mb-1.5 h-1 cursor-pointer overflow-hidden rounded-full bg-stone-200 dark:bg-stone-700">
-              <div id="music-progress" class="h-full rounded-full bg-blue-500 transition-all duration-200" style="width: 0%"></div>
-            </div>
-            <div class="flex justify-between text-[11px] text-stone-400">
-              <span id="music-current-time">0:00</span>
-              <span id="music-total-time">0:00</span>
-            </div>
-          </div>
-
-          <!-- 播放控制 -->
-          <div class="flex items-center justify-center gap-6">
-            <button class="text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 transition-colors" disabled aria-label="上一首">
-              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" /></svg>
-            </button>
-            <button id="music-modal-play" class="flex h-11 w-11 items-center justify-center rounded-full bg-blue-500 text-white shadow-md hover:bg-blue-600 active:scale-95 transition-all" aria-label="播放">
-              <svg id="modal-icon-play" class="h-5 w-5 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
-              <svg id="modal-icon-pause" class="hidden h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                <rect x="6" y="4" width="4" height="16" />
-                <rect x="14" y="4" width="4" height="16" />
-              </svg>
-            </button>
-            <button class="text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 transition-colors" disabled aria-label="下一首">
-              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zm10-12v12h2V6z" /></svg>
-            </button>
-          </div>
-
-          <!-- 音量 -->
-          <div class="mt-4 flex items-center gap-2">
-            <svg class="h-3.5 w-3.5 shrink-0 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-            </svg>
-            <input id="music-volume" type="range" min="0" max="100" value="70" step="1" class="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-stone-200 accent-blue-500 dark:bg-stone-700" />
-            <svg class="h-3.5 w-3.5 shrink-0 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-              <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-            </svg>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 音频元素 -->
-    <audio id="music-audio" loop preload="none">
-      <source src="/Jazzbgm.mp3" type="audio/mpeg">
-    </audio>
-
     <script>
       // 主题切换
-      const themeToggle = document.getElementById('theme-toggle');
-      const htmlEl = document.documentElement;
+      const toggle = document.getElementById('theme-toggle');
+      const html = document.documentElement;
       const syncPressed = () =>
-        themeToggle?.setAttribute('aria-pressed', htmlEl.classList.contains('dark') ? 'true' : 'false');
-      themeToggle?.addEventListener('click', () => {
-        htmlEl.classList.toggle('dark');
-        localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light');
+        toggle?.setAttribute('aria-pressed', html.classList.contains('dark') ? 'true' : 'false');
+      toggle?.addEventListener('click', () => {
+        html.classList.toggle('dark');
+        localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
         syncPressed();
       });
       syncPressed();
-    </script>
-
-    <script>
-      (function () {
-        var audio = document.getElementById('music-audio');
-        var openBtn = document.getElementById('music-share-btn');
-        var overlay = document.getElementById('music-modal-overlay');
-        var modal = document.getElementById('music-modal');
-        var closeBtn = document.getElementById('music-modal-close');
-        var playBtn = document.getElementById('music-modal-play');
-        var iconPlay = document.getElementById('modal-icon-play');
-        var iconPause = document.getElementById('modal-icon-pause');
-        var progressBar = document.getElementById('music-progress');
-        var progressWrap = document.getElementById('music-progress-bar');
-        var currentTimeEl = document.getElementById('music-current-time');
-        var totalTimeEl = document.getElementById('music-total-time');
-        var volumeSlider = document.getElementById('music-volume');
-        var disc = document.getElementById('music-disc-large');
-
-        var isPlaying = false;
-        var modalOpen = false;
-
-        function formatTime(sec) {
-          if (isNaN(sec)) return '0:00';
-          var m = Math.floor(sec / 60);
-          var s = Math.floor(sec % 60);
-          return m + ':' + (s < 10 ? '0' : '') + s;
-        }
-
-        function openModal() {
-          modalOpen = true;
-          overlay.classList.remove('hidden');
-          overlay.classList.add('flex');
-          requestAnimationFrame(function () {
-            modal.classList.remove('scale-95', 'opacity-0');
-            modal.classList.add('scale-100', 'opacity-100');
-          });
-        }
-
-        function closeModal() {
-          modal.classList.remove('scale-100', 'opacity-100');
-          modal.classList.add('scale-95', 'opacity-0');
-          setTimeout(function () {
-            overlay.classList.add('hidden');
-            overlay.classList.remove('flex');
-            modalOpen = false;
-          }, 200);
-        }
-
-        openBtn.addEventListener('click', openModal);
-        closeBtn.addEventListener('click', closeModal);
-
-        overlay.addEventListener('click', function (e) {
-          if (e.target === overlay) closeModal();
-        });
-
-        document.addEventListener('keydown', function (e) {
-          if (e.key === 'Escape' && modalOpen) closeModal();
-        });
-
-        function updatePlayIcon() {
-          iconPlay.classList.toggle('hidden', isPlaying);
-          iconPause.classList.toggle('hidden', !isPlaying);
-        }
-
-        playBtn.addEventListener('click', function () {
-          if (isPlaying) {
-            audio.pause();
-            isPlaying = false;
-          } else {
-            audio.play().catch(function () {
-              isPlaying = false;
-              updatePlayIcon();
-            });
-            isPlaying = true;
-          }
-          updatePlayIcon();
-        });
-
-        audio.addEventListener('play', function () { isPlaying = true; updatePlayIcon(); });
-        audio.addEventListener('pause', function () { isPlaying = false; updatePlayIcon(); });
-
-        audio.addEventListener('timeupdate', function () {
-          if (audio.duration) {
-            var pct = (audio.currentTime / audio.duration) * 100;
-            progressBar.style.width = pct + '%';
-            currentTimeEl.textContent = formatTime(audio.currentTime);
-            totalTimeEl.textContent = formatTime(audio.duration);
-          }
-        });
-
-        progressWrap.addEventListener('click', function (e) {
-          if (audio.duration) {
-            var rect = progressWrap.getBoundingClientRect();
-            var pct = (e.clientX - rect.left) / rect.width;
-            audio.currentTime = pct * audio.duration;
-          }
-        });
-
-        volumeSlider.addEventListener('input', function () { audio.volume = volumeSlider.value / 100; });
-        audio.volume = 0.7;
-
-        var rotation = 0;
-        var animFrame = null;
-        function animateDisc() {
-          if (isPlaying) {
-            rotation = (rotation + 0.8) % 360;
-            disc.style.transform = 'rotate(' + rotation + 'deg)';
-            animFrame = requestAnimationFrame(animateDisc);
-          }
-        }
-        audio.addEventListener('play', function () { if (!animFrame) animateDisc(); });
-        audio.addEventListener('pause', function () {
-          if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
-        });
-      })();
     </script>
   </body>
 </html>

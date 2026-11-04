@@ -13,8 +13,8 @@ featured: true
 
 ![苏州](/images/Jingjilake.png)
 
-![日落](/images/sundown.jpg)
+![日落](/images/sundown.jpeg)
 
-![水乡](/images/watercar.jpg)
+![水乡](/images/watercar.jpeg)
 
 ![拙政园](/images/zhuozhengpark.jpg)

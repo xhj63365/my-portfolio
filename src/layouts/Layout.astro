@@ -1,6 +1,6 @@
 ---
-// 关键修复：在组件内引入全局样式，Astro 会在构建时注入 <head>
 import '../styles/global.css';
+import { ViewTransitions } from 'astro:transitions';
 
 interface Props {
   title: string;
@@ -8,7 +8,6 @@ interface Props {
 }
 const { title, description = 'Joexu 的个人作品集 —— 文字与光影' } = Astro.props;
 
-// 当前路径，用于导航高亮
 const pathname = Astro.url.pathname;
 const navItems = [
   { href: '/writing', label: '写作' },
@@ -31,8 +30,7 @@ const navItems = [
       rel="stylesheet"
     />
     <title>{title}</title>
-
-    {/* 防闪烁：首帧渲染前根据本地偏好/系统偏好确定 dark 类 */}
+    <ViewTransitions />
     <script is:inline>
       (function () {
         try {
@@ -96,18 +94,155 @@ const navItems = [
       <p>&copy; {new Date().getFullYear()} Joexu · 文字与光影</p>
     </footer>
 
+    <!-- 全局音频（跨页面持续播放） -->
+    <audio id="global-audio" transition:persist preload="none"></audio>
+
+    <!-- 迷你播放器（非音乐页面显示） -->
+    <div id="mini-player" transition:persist
+      class="fixed bottom-0 left-0 right-0 z-50 border-t border-stone-200/60 bg-white/90 backdrop-blur-md dark:border-stone-700/60 dark:bg-stone-950/90">
+      <div class="mx-auto flex max-w-4xl items-center gap-3 px-6 py-3">
+        <div id="mp-disc" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-800">
+          <svg class="h-4 w-4 text-stone-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="10"/></svg>
+        </div>
+        <div class="min-w-0 flex-1">
+          <p id="mp-name" class="truncate text-sm font-medium text-stone-700 dark:text-stone-300">Jazz BGM</p>
+          <p id="mp-time" class="text-xs text-stone-400">0:00 / 0:00</p>
+        </div>
+        <div class="hidden flex-1 sm:block mx-2">
+          <div id="mp-bar" class="h-1 cursor-pointer overflow-hidden rounded-full bg-stone-200 dark:bg-stone-700">
+            <div id="mp-fill" class="h-full rounded-full bg-blue-500" style="width:0%"></div>
+          </div>
+        </div>
+        <button id="mp-play" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors" aria-label="播放/暂停">
+          <svg id="mp-icon-play" class="h-3.5 w-3.5 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="mp-icon-pause" class="hidden h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        </button>
+        <a href="/music" class="shrink-0 text-xs text-blue-500 hover:text-blue-600">音乐</a>
+      </div>
+    </div>
+
     <script>
       // 主题切换
       const toggle = document.getElementById('theme-toggle');
-      const html = document.documentElement;
+      const htmlEl = document.documentElement;
       const syncPressed = () =>
-        toggle?.setAttribute('aria-pressed', html.classList.contains('dark') ? 'true' : 'false');
+        toggle?.setAttribute('aria-pressed', htmlEl.classList.contains('dark') ? 'true' : 'false');
       toggle?.addEventListener('click', () => {
-        html.classList.toggle('dark');
-        localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        htmlEl.classList.toggle('dark');
+        localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light');
         syncPressed();
       });
       syncPressed();
+
+      // ===== 全局音乐播放器 =====
+      (function () {
+        var audio = document.getElementById('global-audio');
+        var miniPlayer = document.getElementById('mini-player');
+        var mpName = document.getElementById('mp-name');
+        var mpTime = document.getElementById('mp-time');
+        var mpFill = document.getElementById('mp-fill');
+        var mpBar = document.getElementById('mp-bar');
+        var mpPlayBtn = document.getElementById('mp-play');
+        var mpIconPlay = document.getElementById('mp-icon-play');
+        var mpIconPause = document.getElementById('mp-icon-pause');
+        var mpDisc = document.getElementById('mp-disc');
+
+        var songs = [
+          { name: 'Jazz BGM', src: '/Jazzbgm.mp3' }
+          // 添加更多歌曲：
+          // { name: '歌曲名称', src: '/文件名.mp3' }
+        ];
+
+        var currentIndex = 0;
+        var isPlaying = false;
+        var rotation = 0;
+        var animFrame = null;
+
+        function fmt(sec) {
+          if (isNaN(sec)) return '0:00';
+          var m = Math.floor(sec / 60);
+          var s = Math.floor(sec % 60);
+          return m + ':' + (s < 10 ? '0' : '') + s;
+        }
+
+        function updateMini() {
+          if (!mpName) return;
+          mpName.textContent = songs[currentIndex].name;
+          mpIconPlay.classList.toggle('hidden', isPlaying);
+          mpIconPause.classList.toggle('hidden', !isPlaying);
+        }
+
+        function updateProgress() {
+          if (audio.duration) {
+            var p = (audio.currentTime / audio.duration) * 100;
+            if (mpFill) mpFill.style.width = p + '%';
+            if (mpTime) mpTime.textContent = fmt(audio.currentTime) + ' / ' + fmt(audio.duration);
+          }
+        }
+
+        function animateDisc() {
+          if (isPlaying && mpDisc) {
+            rotation = (rotation + 0.6) % 360;
+            mpDisc.style.transform = 'rotate(' + rotation + 'deg)';
+            animFrame = requestAnimationFrame(animateDisc);
+          }
+        }
+
+        function play() {
+          audio.play().catch(function () { isPlaying = false; updateMini(); });
+          isPlaying = true; updateMini();
+          if (!animFrame) animateDisc();
+        }
+        function pause() {
+          audio.pause(); isPlaying = false; updateMini();
+          if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+        }
+        function toggle() { isPlaying ? pause() : play(); }
+        function load(idx) {
+          currentIndex = ((idx % songs.length) + songs.length) % songs.length;
+          audio.src = songs[currentIndex].src;
+          updateMini(); updateProgress();
+          if (isPlaying) play();
+        }
+
+        audio.addEventListener('play', function () { isPlaying = true; updateMini(); if (!animFrame) animateDisc(); });
+        audio.addEventListener('pause', function () { isPlaying = false; updateMini(); if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; } });
+        audio.addEventListener('ended', function () { load(currentIndex + 1); });
+        audio.addEventListener('timeupdate', updateProgress);
+
+        if (mpPlayBtn) mpPlayBtn.addEventListener('click', toggle);
+        if (mpBar) mpBar.addEventListener('click', function (e) {
+          if (audio.duration) {
+            var rect = mpBar.getBoundingClientRect();
+            audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+          }
+        });
+
+        // 全局音乐控制 API，供音乐页面调用
+        window.__music = {
+          audio: audio,
+          songs: songs,
+          get current() { return currentIndex; },
+          get playing() { return isPlaying; },
+          play: play, pause: pause, toggle: toggle, load: load,
+          seek: function (pct) { if (audio.duration) audio.currentTime = pct * audio.duration; },
+          volume: function (v) { audio.volume = v; },
+          fmt: fmt
+        };
+
+        // 页面切换时控制迷你播放器的显隐
+        function updateVisibility() {
+          if (!miniPlayer) return;
+          if (window.location.pathname.startsWith('/music')) {
+            miniPlayer.classList.add('hidden');
+          } else {
+            miniPlayer.classList.remove('hidden');
+          }
+        }
+
+        updateVisibility();
+        document.addEventListener('astro:page-load', updateVisibility);
+      })();
     </script>
   </body>
 </html>

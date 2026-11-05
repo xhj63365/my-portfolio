@@ -5,7 +5,7 @@ summary: "关于分享的一点想法"
 tags:
   - 建站
   - 分享
-featured: true
+featured: false
 ---
 
 很多人喜欢发朋友圈，但我认为朋友圈并不适合分享自己的思考，于是就有了这个网站。
